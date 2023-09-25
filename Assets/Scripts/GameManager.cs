@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
@@ -10,6 +11,24 @@ using Random = UnityEngine.Random;
 public enum Tile
 {
     Ground, Wall, Rock
+}
+
+public enum GameState
+{
+    Paused, Running, Finished
+}
+
+public enum GameActions
+{
+    Up, Down, Left, Right, Bomb
+}
+
+public class GameData
+{
+    public Tile[][] Terrain;
+    public List<Bomberman> Bombermans;
+    
+
 }
 
 public class GameManager : MonoBehaviour
@@ -20,51 +39,48 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform camera;
     [SerializeField] private GameConfig config;
 
+    public GameData Data { get; set; } 
+    
     private GameObject _playerPrefab;
-    public Tile[][] Terrain { get; set; } //[x][y] -> Tile
-
-    public List<Player> Players { get; set; }
     private readonly List<GameObject> _playersGameObjects = new(); //playerId -> position
 
     public List<Vector2> Bombs { get; set; }
-    
-    
+
+
     private void Awake()
     {
         Assert.AreNotEqual(0, config.terrainDimensions.x % 2);
         Assert.AreNotEqual(0, config.terrainDimensions.y % 2);
         _playerPrefab = Resources.Load<GameObject>("Player");
-        Terrain = new Tile[config.terrainDimensions.x][];
-        for (var i = 0; i < Terrain.Length; i++)
+        Data = new GameData
         {
-            Terrain[i] = new Tile[config.terrainDimensions.y];
-        }
-        
-        Players = new List<Player>
-        {
-            new() { Position = new Vector2(1, 1), Behavior = PlayerBehavior.Player },
-            new() { Position = new Vector2(Terrain.Length, 1), Behavior = PlayerBehavior.Random },
-            new() { Position = new Vector2(1, Terrain[0].Length), Behavior = PlayerBehavior.Montecarlo },
-            new() { Position = new Vector2(Terrain.Length, Terrain[0].Length), Behavior = PlayerBehavior.Montecarlo }
+            Terrain = new Tile[config.terrainDimensions.x][]
         };
-        
-        for (var i = 0; i < Terrain.Length; i++)
+        for (var i = 0; i < Data.Terrain.Length; i++)
         {
-            for (var j = 0; j < Terrain[i].Length; j++)
-            {
-                if (i == 0 || i == Terrain.Length - 1 || j == 0 || j == Terrain[0].Length - 1 || (i % 2 == 0 && j % 2 == 0))
-                {
-                    Terrain[i][j] = Tile.Wall;
-                }
-                else if (!((i < 3 && j < 3) || (i < 3 && j > Terrain[0].Length - 4) || (i > Terrain.Length - 4 && j < 3)
-                         || (i > Terrain.Length - 4 && j > Terrain[0].Length - 4)))
-                {
-                    float rng = Random.Range(0, 100);
-                    Terrain[i][j] = rng > config.rockRate ? Tile.Ground : Tile.Rock;
-                }
-            }
+            Data.Terrain[i] = new Tile[config.terrainDimensions.y];
         }
-        InitialRender();
+
+        Data.Bombermans = new()
+        {
+            new Bomberman { X = 1, Y = 1, State = BombermanState.Player, BombermanAction = BombermanAction.None },
+            new Bomberman
+            {
+                X = Data.Terrain.Length - 1, Y = 1, State = BombermanState.Random,
+                BombermanAction = BombermanAction.None
+            },
+            new Bomberman
+            {
+                X = 1, Y = Data.Terrain[0].Length - 1, State = BombermanState.Random,
+                BombermanAction = BombermanAction.None
+            },
+            new Bomberman
+            {
+                X = Data.Terrain.Length - 1, Y = Data.Terrain[0].Length - 1, State = BombermanState.Random,
+                BombermanAction = BombermanAction.None
+            }
+        };
+        GenerateTerrain();
     }
     
     
@@ -72,26 +88,45 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        camera.position = new Vector3(Terrain.Length / 2, Terrain[0].Length / 2, -10);
-        _playersGameObjects.Add(Instantiate(_playerPrefab, new Vector3(Players[0].Position.x, Players[0].Position.y, 0), Quaternion.identity));
+        camera.position = new Vector3(Data.Terrain.Length / 2, Data.Terrain[0].Length / 2, -10);
+        _playersGameObjects.Add(Instantiate(_playerPrefab, new Vector3(Data.Bombermans[0].X, Data.Bombermans[0].Y, 0), Quaternion.identity));
+    }
+
+    private void FixedUpdate()
+    {
+        
     }
 
     // Update is called once per frame
-    private void FixedUpdate()
+    private void Update()
     {
-        for (var i = 0; i < _playersGameObjects.Count; i++)
-        {
-            _playersGameObjects[i].transform.position = new Vector3(Players[i].Position.x, Players[i].Position.y, 0);
-        }
+        UpdatePlayers();
+        RenderPlayers();
     }
 
-    private void InitialRender()
+    private void GenerateTerrain()
     {
-        for (var i = 0; i < Terrain.Length; i++)
+        for (var i = 0; i < Data.Terrain.Length; i++)
         {
-            for (var j = 0; j < Terrain[i].Length; j++)
+            for (var j = 0; j < Data.Terrain[i].Length; j++)
             {
-                var tile = Terrain[i][j] switch
+                if (i == 0 || i == Data.Terrain.Length - 1 || j == 0 || j == Data.Terrain[0].Length - 1 || (i % 2 == 0 && j % 2 == 0))
+                {
+                    Data.Terrain[i][j] = Tile.Wall;
+                }
+                else if (!((i < 3 && j < 3) || (i < 3 && j > Data.Terrain[0].Length - 4) || (i > Data.Terrain.Length - 4 && j < 3)
+                           || (i > Data.Terrain.Length - 4 && j > Data.Terrain[0].Length - 4)))
+                {
+                    float rng = Random.Range(0, 100);
+                    Data.Terrain[i][j] = rng > config.rockRate ? Tile.Ground : Tile.Rock;
+                }
+            }
+        }
+        for (var i = 0; i < Data.Terrain.Length; i++)
+        {
+            for (var j = 0; j < Data.Terrain[i].Length; j++)
+            {
+                var tile = Data.Terrain[i][j] switch
                 {
                     Tile.Ground => groundSprite,
                     Tile.Wall => wallSprite,
@@ -103,11 +138,51 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private bool CloseToPlayer(int x, int y, Player player)
+    private void UpdatePlayers()
     {
-        Vector2 distance = new Vector2(player.Position.x - x, player.Position.y - y);
-        Debug.Log($"Distance : {distance}");
-        return (distance.x < 2 || distance.y < 2);
+        Data.Bombermans.ForEach(bomberman =>
+        {
+            switch (bomberman.BombermanAction)
+            {
+                
+                case BombermanAction.None:
+                    Debug.Log("None");
+                    break;
+                case BombermanAction.Bomb:
+                    break;
+                case BombermanAction.Up:
+                    if (Data.Terrain[(int)bomberman.X][(int)(bomberman.Y + 1.5)] != Tile.Ground)
+                    bomberman.Y += 1 * Time.deltaTime;
+                    
+                    Debug.Log("Up");
+                    break;
+                case BombermanAction.Down:
+                    if (Data.Terrain[(int)bomberman.X][(int)(bomberman.Y - 1.5)] != Tile.Ground)
+                    bomberman.Y -= 1 * Time.deltaTime;
+                    Debug.Log("Down");
+                    break;
+                case BombermanAction.Left:
+                    if (Data.Terrain[(int)(bomberman.X - 1.5)][(int)bomberman.Y] != Tile.Ground)
+                    bomberman.X -= 1 * Time.deltaTime;
+                    Debug.Log("Left");
+                    break;
+                case BombermanAction.Right:
+                    if (Data.Terrain[(int)(bomberman.X + 1.5)][(int)bomberman.Y] != Tile.Ground)
+                    bomberman.X += 1 * Time.deltaTime;
+                    Debug.Log("Right");
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
+
+    private void RenderPlayers()
+    {
+        for (var i = 0; i < Data.Bombermans.Count; i++)
+        {
+            _playersGameObjects[i].transform.position = Data.Bombermans[i].Position;
+        }
     }
 
 }
