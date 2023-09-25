@@ -42,6 +42,7 @@ public class GameManager : MonoBehaviour
     public GameData Data { get; set; } 
     
     private GameObject _playerPrefab;
+    private GameObject _botPrefab;
     private readonly List<GameObject> _playersGameObjects = new(); //playerId -> position
 
     public List<Vector2> Bombs { get; set; }
@@ -52,6 +53,7 @@ public class GameManager : MonoBehaviour
         Assert.AreNotEqual(0, config.terrainDimensions.x % 2);
         Assert.AreNotEqual(0, config.terrainDimensions.y % 2);
         _playerPrefab = Resources.Load<GameObject>("Player");
+        _botPrefab = Resources.Load<GameObject>("Bot");
         Data = new GameData
         {
             Terrain = new Tile[config.terrainDimensions.x][]
@@ -66,17 +68,17 @@ public class GameManager : MonoBehaviour
             new Bomberman { X = 1, Y = 1, State = BombermanState.Player, BombermanAction = BombermanAction.None },
             new Bomberman
             {
-                X = Data.Terrain.Length - 1, Y = 1, State = BombermanState.Random,
+                X = Data.Terrain.Length - 2, Y = 1, State = BombermanState.Random,
                 BombermanAction = BombermanAction.None
             },
             new Bomberman
             {
-                X = 1, Y = Data.Terrain[0].Length - 1, State = BombermanState.Random,
+                X = 1, Y = Data.Terrain[0].Length - 2, State = BombermanState.Random,
                 BombermanAction = BombermanAction.None
             },
             new Bomberman
             {
-                X = Data.Terrain.Length - 1, Y = Data.Terrain[0].Length - 1, State = BombermanState.Random,
+                X = Data.Terrain.Length - 2, Y = Data.Terrain[0].Length - 2, State = BombermanState.Random,
                 BombermanAction = BombermanAction.None
             }
         };
@@ -90,6 +92,10 @@ public class GameManager : MonoBehaviour
     {
         camera.position = new Vector3(Data.Terrain.Length / 2, Data.Terrain[0].Length / 2, -10);
         _playersGameObjects.Add(Instantiate(_playerPrefab, new Vector3(Data.Bombermans[0].X, Data.Bombermans[0].Y, 0), Quaternion.identity));
+        for (var i = 1; i < Data.Bombermans.Count; i++)
+        {
+            _playersGameObjects.Add(Instantiate(_botPrefab, new Vector3(Data.Bombermans[i].X, Data.Bombermans[i].Y, 0), Quaternion.identity));
+        }
     }
 
     private void FixedUpdate()
@@ -146,30 +152,24 @@ public class GameManager : MonoBehaviour
             {
                 
                 case BombermanAction.None:
-                    Debug.Log("None");
                     break;
                 case BombermanAction.Bomb:
                     break;
                 case BombermanAction.Up:
-                    if (Data.Terrain[(int)bomberman.X][(int)(bomberman.Y + 1.5)] != Tile.Ground)
-                    bomberman.Y += 1 * Time.deltaTime;
-                    
-                    Debug.Log("Up");
+                    if (Data.Terrain[(int)(bomberman.X + 0.5f)][(int)(bomberman.Y + 1f)] == Tile.Ground)
+                        bomberman.Y += 1 * Time.deltaTime * 2;
                     break;
                 case BombermanAction.Down:
-                    if (Data.Terrain[(int)bomberman.X][(int)(bomberman.Y - 1.5)] != Tile.Ground)
-                    bomberman.Y -= 1 * Time.deltaTime;
-                    Debug.Log("Down");
+                    if (Data.Terrain[(int)(bomberman.X + 0.5f)][(int)bomberman.Y] == Tile.Ground)
+                        bomberman.Y -= 1 * Time.deltaTime * 2;
                     break;
                 case BombermanAction.Left:
-                    if (Data.Terrain[(int)(bomberman.X - 1.5)][(int)bomberman.Y] != Tile.Ground)
-                    bomberman.X -= 1 * Time.deltaTime;
-                    Debug.Log("Left");
+                    if (Data.Terrain[(int)bomberman.X][(int)(bomberman.Y + 0.5f)] == Tile.Ground)
+                        bomberman.X -= 1 * Time.deltaTime * 2;
                     break;
                 case BombermanAction.Right:
-                    if (Data.Terrain[(int)(bomberman.X + 1.5)][(int)bomberman.Y] != Tile.Ground)
-                    bomberman.X += 1 * Time.deltaTime;
-                    Debug.Log("Right");
+                    if (Data.Terrain[(int)(bomberman.X + 1f)][(int)(bomberman.Y + 0.5f)] == Tile.Ground)
+                        bomberman.X += 1 * Time.deltaTime * 2;
                     break;
                 default:
                     break;
