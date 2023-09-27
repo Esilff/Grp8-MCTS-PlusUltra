@@ -7,4 +7,6 @@ public class GameConfig : ScriptableObject
 {
     public Vector2Int terrainDimensions;
     public int rockRate;
+    public float bombCooldown;
+    public int bombRadius;
 }

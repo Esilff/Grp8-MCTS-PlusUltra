@@ -19,7 +19,7 @@ public class Bomberman
     public BombermanAction BombermanAction { get; set; }
     public BombermanState State { get; set; }
 
-    public int BombCooldown { get; set; } = 1;
+    public float BombCooldown { get; set; } = 2;
     public bool CanBomb { get; set; } = true;
 
     public Vector3 Position => new Vector3(X, Y,0);

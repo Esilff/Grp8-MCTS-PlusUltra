@@ -28,7 +28,7 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (input.actions["Bomb"].IsPressed() && _player.CanBomb)
+        if (input.actions["Bomb"].IsPressed())
         {
             _player.BombermanAction = BombermanAction.Bomb;
             return;
