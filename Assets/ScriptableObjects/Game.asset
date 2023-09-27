@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   terrainDimensions: {x: 15, y: 9}
   rockRate: 1
-  bombCooldown: 0
-  bombRadius: 0
+  bombCooldown: 2
+  bombRadius: 5
