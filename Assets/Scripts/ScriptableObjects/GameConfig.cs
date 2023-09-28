@@ -6,7 +6,7 @@ using UnityEngine;
 public class GameConfig : ScriptableObject
 {
     public Vector2Int terrainDimensions;
-    public int rockRate;
+    [Range(0,1)]public float rockRate;
     public float bombCooldown;
     public int bombRadius;
 }

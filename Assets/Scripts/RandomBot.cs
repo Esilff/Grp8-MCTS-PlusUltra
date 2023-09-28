@@ -6,31 +6,29 @@ using UnityEngine;
 public class RandomBot : MonoBehaviour
 {
     [SerializeField] private GameManager gameManager;
-    public GameData Data { get; set; }
-    // Start is called before the first frame update
-    void Start()
+    private GameData _data;
+
+    private void Start()
     {
-        Data = gameManager.Data;
+        _data = gameManager.Data;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        Data.Bombermans.ForEach(bomberman =>
+        _data.Bombers.ForEach(bomberman =>
         {
-            if (bomberman.State == BombermanState.Random)
+            if (bomberman.Type == BombermanType.Random)
             {
                 bomberman.BombermanAction = RandomAction();
             }
-        } );
+        });
     }
 
     private BombermanAction RandomAction()
     {
-        var enumNames = Enum.GetNames(typeof(BombermanAction));
-        var randomEnumName = enumNames[UnityEngine.Random.Range(0, enumNames.Length)];
-        return Enum.TryParse(randomEnumName, out BombermanAction randomAction) ? randomAction : BombermanAction.None;
+        var count = Enum.GetValues(typeof(BombermanAction)).Length;
+        var rnd = UnityEngine.Random.Range(0, count);
+        return Enum.Parse<BombermanAction>(rnd.ToString());
     }
-
 }
 
