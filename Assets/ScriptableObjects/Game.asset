@@ -15,4 +15,4 @@ MonoBehaviour:
   terrainDimensions: {x: 15, y: 9}
   rockRate: 1
   bombCooldown: 2
-  bombRadius: 5
+  bombRadius: 2

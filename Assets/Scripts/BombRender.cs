@@ -11,7 +11,6 @@ public class BombRender : MonoBehaviour
     {
         if (bomb.Cooldown < 0)
         {
-            Debug.Log("Test");
             Destroy(gameObject);
         }
     }

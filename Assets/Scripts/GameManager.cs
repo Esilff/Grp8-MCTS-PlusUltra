@@ -87,6 +87,7 @@ public class GameManager : MonoBehaviour
         }
         UpdateBombers(Data);
         UpdateTimers(Data);
+        CheckEndOfGame(Data);
     }
 
     private void UpdateBombers(GameData data)
@@ -115,25 +116,25 @@ public class GameManager : MonoBehaviour
                 case BombermanAction.Up:
                     if (data.Terrain[bomberman.Xi, bomberman.Yi] == Tile.Ground)
                     {
-                        bomberman.Y += 1 * 0.001f;
+                        bomberman.Y += 1 * 0.003f;
                     }
                     break;
                 case BombermanAction.Down:
                     if (data.Terrain[bomberman.Xi, bomberman.Yi - 1] == Tile.Ground)
                     {
-                        bomberman.Y -= 1 * 0.001f;
+                        bomberman.Y -= 1 * 0.003f;
                     }
                     break;
                 case BombermanAction.Left:
                     if (data.Terrain[bomberman.Xi - 1, bomberman.Yi] == Tile.Ground)
                     {
-                        bomberman.X -= 1 * 0.001f;
+                        bomberman.X -= 1 * 0.003f;
                     }
                     break;
                 case BombermanAction.Right:
                     if (data.Terrain[bomberman.Xi, bomberman.Yi] == Tile.Ground)
                     {
-                        bomberman.X += 1 * 0.001f;
+                        bomberman.X += 1 * 0.003f;
                     }
                     break;
             }
@@ -159,7 +160,7 @@ public class GameManager : MonoBehaviour
             {
                 bomb.Cooldown -= Time.deltaTime;
             }
-            else
+            if (bomb.Cooldown < 0) //Si c'est un else la bombe sera détruite avant même le call de la méthode Explode
             {
                 Explode(bomb, data);
             }
@@ -171,23 +172,100 @@ public class GameManager : MonoBehaviour
     private void Explode(Bomb bomb, GameData data)
     {
         var rockDestroyed = 0;
-        for (int t = 1, b = 1, l = 1, r = 1;
-             t < bomb.Radius && b < bomb.Radius && l < bomb.Radius && r < bomb.Radius;
-             t++, b++, l++, r++)
+        for (var t = 1; t <= bomb.Radius; t++)
         {
-            if (!IsOffLimit(bomb.Xi, bomb.Yi + t, data) || data.Terrain[bomb.Xi, bomb.Yi + t] == Tile.Wall)
+            if (IsOffLimit(bomb.Xi, bomb.Yi + t, data) || data.Terrain[bomb.Xi, bomb.Yi + t] == Tile.Wall)
             {
                 t = bomb.Radius;
-                Debug.Log("Radius locked");
             }
             else if (data.Terrain[bomb.Xi, bomb.Yi + t] == Tile.Rock)
             {
-                Debug.Log("Destroying somfing");
                 data.Terrain[bomb.Xi, bomb.Yi + t] = Tile.Ground;
                 rockDestroyed++;
+            } else if (data.Terrain[bomb.Xi, bomb.Yi + t] == Tile.Ground)
+            {
+                data.Bombers.ForEach(bomberman =>
+                {
+                    if (Vector3.Distance(bomberman.Position, new Vector3(bomb.X, bomb.Y + t, 0)) < 0.5f)
+                    {
+                        bomberman.IsDead = true;
+                    }
+                });
             }
         }
-
+        
+        for (var r = 1; r <= bomb.Radius; r++)
+        {
+            if (IsOffLimit(bomb.Xi + r, bomb.Yi, data) || data.Terrain[bomb.Xi + r, bomb.Yi] == Tile.Wall)
+            {
+                r = bomb.Radius;
+            }
+            else if (data.Terrain[bomb.Xi + r, bomb.Yi] == Tile.Rock)
+            {
+                data.Terrain[bomb.Xi + r, bomb.Yi] = Tile.Ground;
+                rockDestroyed++;
+            } 
+            else if (data.Terrain[bomb.Xi + r, bomb.Yi] == Tile.Ground)
+            {
+                data.Bombers.ForEach(bomberman =>
+                {
+                    if (Vector3.Distance(bomberman.Position, new Vector3(bomb.X + r, bomb.Y, 0)) < 0.5f)
+                    {
+                        bomberman.IsDead = true;
+                    }
+                });
+            }
+        }
+        for (var l = 1; l <= bomb.Radius; l++)
+        {
+            if (IsOffLimit(bomb.Xi - l, bomb.Yi, data) || data.Terrain[bomb.Xi - l, bomb.Yi] == Tile.Wall)
+            {
+                l = bomb.Radius;
+            }
+            else if (data.Terrain[bomb.Xi - l, bomb.Yi] == Tile.Rock)
+            {
+                data.Terrain[bomb.Xi - l, bomb.Yi] = Tile.Ground;
+                rockDestroyed++;
+            }
+            else if (data.Terrain[bomb.Xi - l, bomb.Yi] == Tile.Ground)
+            {
+                data.Bombers.ForEach(bomberman =>
+                {
+                    if (Vector3.Distance(bomberman.Position, new Vector3(bomb.X - l, bomb.Y, 0)) < 0.5f)
+                    {
+                        bomberman.IsDead = true;
+                    }
+                });
+            }
+        }
+        for (var b = 1; b <= bomb.Radius; b++)
+        {
+            if (IsOffLimit(bomb.Xi, bomb.Yi - b, data) || data.Terrain[bomb.Xi, bomb.Yi - b] == Tile.Wall)
+            {
+                b = bomb.Radius;
+            }
+            else if (data.Terrain[bomb.Xi, bomb.Yi - b] == Tile.Rock)
+            {
+                data.Terrain[bomb.Xi, bomb.Yi - b] = Tile.Ground;
+                rockDestroyed++;
+            } else if (data.Terrain[bomb.Xi, bomb.Yi - b] == Tile.Ground)
+            {
+                data.Bombers.ForEach(bomberman =>
+                {
+                    if (Vector3.Distance(bomberman.Position, new Vector3(bomb.X, bomb.Y - b, 0)) < 0.5f)
+                    {
+                        bomberman.IsDead = true;
+                    }
+                });
+            }
+        }
+        data.Bombers.ForEach(bomberman =>
+        {
+            if (Vector3.Distance(bomberman.Position, new Vector3(bomb.X, bomb.Y, 0)) < 0.5f)
+            {
+                bomberman.IsDead = true;
+            }
+        });
         if (rockDestroyed > 0)
         {
             OnRockDestroyed(EventArgs.Empty);
@@ -197,6 +275,15 @@ public class GameManager : MonoBehaviour
     private bool IsOffLimit(int x, int y, GameData data)
     {
         return (x < 0 || x >= data.Width - 1) || (y < 0 || y >= data.Height - 1);
+    }
+
+    private void CheckEndOfGame(GameData data)
+    {
+        if (data.Bombers.Count(bomberman => !bomberman.IsDead) <= 1)
+        {
+            data.Bombs.ForEach(bomb => bomb.Cooldown = -1);
+            data.GameState = GameState.Finished;
+        }
     }
     
 }
