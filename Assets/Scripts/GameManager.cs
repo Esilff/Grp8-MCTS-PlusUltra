@@ -108,8 +108,8 @@ public class GameManager : MonoBehaviour
             SceneManager.LoadScene("MainMenu");
             return;
         }
-        UpdateBombers(Data);
-        UpdateTimers(Data);
+        UpdateBombers(Data, true);
+        UpdateTimers(Data, true);
         CheckEndOfGame(Data);
     }
 

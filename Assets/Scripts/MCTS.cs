@@ -18,7 +18,7 @@ public class MCTS : MonoBehaviour
 
     public int Iterations { get; set; } = 100;
 
-    private List<BombermanAction> _actions;
+    private List<BombermanAction> _actions = new();
     // Update is called once per frame
     void Update()
     {
