@@ -10,7 +10,7 @@ public enum BombermanType
 
 public enum BombermanAction
 {
-    None, Bomb, Up, Down, Left, Right
+    Null = -1,None, Bomb, Up, Down, Left, Right
 }
 
 public class Bomberman
@@ -29,5 +29,21 @@ public class Bomberman
     public Vector3 Position => new Vector3(X, Y,0);
     public int Xi => Convert.ToInt32(X);
     public int Yi => Convert.ToInt32(Y);
+
+    public Bomberman Copy()
+    {
+        return new Bomberman
+        {
+            X = X,
+            Y = Y,
+            Type = Type,
+            BombermanAction = BombermanAction,
+            IsDead = IsDead,
+            BombCooldown = BombCooldown,
+            CanBomb = CanBomb
+        };
+    }
+
+   
     
 }

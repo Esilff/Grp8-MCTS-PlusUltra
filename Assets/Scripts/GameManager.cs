@@ -23,6 +23,27 @@ public class GameData
     public List<Bomberman> Bombers;
     public List<Bomb> Bombs;
     public GameState GameState;
+
+    public GameData() {}
+    
+    public GameData(GameData copy)
+    {
+        Width = copy.Width;
+        Height = copy.Height;
+        Bombers = new List<Bomberman>();
+        copy.Bombers.ForEach(bomberman => Bombers.Add(bomberman.Copy()));
+        Bombs = new List<Bomb>();
+        copy.Bombs.ForEach(bomb => Bombs.Add(bomb.Copy()));
+        GameState = copy.GameState;
+        Terrain = new Tile[Width,Height];
+        for (var i = 0; i < Width; i++)
+        {
+            for (var j = 0; j < Height; j++)
+            {
+                Terrain[i, j] = copy.Terrain[i, j];
+            }
+        }
+    }
 }
 
 public class BombDroppedEventArgs : EventArgs
@@ -90,7 +111,7 @@ public class GameManager : MonoBehaviour
         CheckEndOfGame(Data);
     }
 
-    private void UpdateBombers(GameData data)
+    public void UpdateBombers(GameData data, bool events = false)
     {
         foreach (var bomberman in Data.Bombers)
         {
@@ -110,7 +131,7 @@ public class GameManager : MonoBehaviour
                             X = bomberman.X, Y = bomberman.Y
                         };
                         data.Bombs.Add(bomb);
-                        OnBombDropped(new BombDroppedEventArgs(bomb));
+                        if (events) OnBombDropped(new BombDroppedEventArgs(bomb));
                     }
                     break;
                 case BombermanAction.Up:
@@ -141,7 +162,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void UpdateTimers(GameData data)
+    public void UpdateTimers(GameData data, bool events = false)
     {
         foreach (var bomberman in data.Bombers)
         {
@@ -162,14 +183,14 @@ public class GameManager : MonoBehaviour
             }
             if (bomb.Cooldown < 0) //Si c'est un else la bombe sera détruite avant même le call de la méthode Explode
             {
-                Explode(bomb, data);
+                Explode(bomb, data, events);
             }
             
         }
         data.Bombs.RemoveAll(bomb => bomb.Cooldown <= 0);
     }
 
-    private void Explode(Bomb bomb, GameData data)
+    private void Explode(Bomb bomb, GameData data, bool events = false)
     {
         var rockDestroyed = 0;
         for (var t = 1; t <= bomb.Radius; t++)
@@ -268,7 +289,7 @@ public class GameManager : MonoBehaviour
         });
         if (rockDestroyed > 0)
         {
-            OnRockDestroyed(EventArgs.Empty);
+            if (events) OnRockDestroyed(EventArgs.Empty);
         }
     }
     
@@ -277,7 +298,7 @@ public class GameManager : MonoBehaviour
         return (x < 0 || x >= data.Width - 1) || (y < 0 || y >= data.Height - 1);
     }
 
-    private void CheckEndOfGame(GameData data)
+    public void CheckEndOfGame(GameData data)
     {
         if (data.Bombers.Count(bomberman => !bomberman.IsDead) <= 1)
         {

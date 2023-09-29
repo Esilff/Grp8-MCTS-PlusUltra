@@ -12,4 +12,15 @@ public class Bomb
 
     public int Xi => Convert.ToInt32(X - 0.5f);
     public int Yi => Convert.ToInt32(Y - 0.5f);
+
+    public Bomb Copy()
+    {
+        return new Bomb
+        {
+            Cooldown = Cooldown,
+            Radius = Radius,
+            X = X,
+            Y = Y
+        };
+    }
 }
