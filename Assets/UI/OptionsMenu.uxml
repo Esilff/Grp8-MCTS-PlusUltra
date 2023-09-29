@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Label tabindex="-1" text="Options" display-tooltip-when-elided="true" style="-unity-text-align: middle-center; height: 52px; text-overflow: clip; font-size: 20px; -unity-font-style: bold; -unity-font: url(&apos;project://database/Assets/TextMesh%20Pro/Examples%20&amp;%20Extras/Fonts/PixelifySans-VariableFont_wght.ttf?fileID=12800000&amp;guid=72a05fd72ee1bfc429366df150fde19e&amp;type=3#PixelifySans-VariableFont_wght&apos;);" />
+    <ui:Slider picking-mode="Ignore" label="Musique" value="42" high-value="100" name="Music" />
+    <ui:Slider picking-mode="Ignore" label="SFX" value="42" high-value="100" name="SFX" />
+    <ui:Button text="Retour" display-tooltip-when-elided="true" name="Back" />
+</ui:UXML>
