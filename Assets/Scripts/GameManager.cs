@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 using Util;
 
 public enum Tile
@@ -104,6 +105,7 @@ public class GameManager : MonoBehaviour
     {
         if (Data.GameState == GameState.Finished)
         {
+            SceneManager.LoadScene("MainMenu");
             return;
         }
         UpdateBombers(Data);

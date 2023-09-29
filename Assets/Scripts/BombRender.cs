@@ -9,6 +9,7 @@ public class BombRender : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        transform.position = new Vector3(bomb.X, bomb.Y, -2);
         if (bomb.Cooldown < 0)
         {
             Destroy(gameObject);

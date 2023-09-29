@@ -7,10 +7,10 @@ using UnityEngine;
 public class GameRenderer : MonoBehaviour
 {
     [SerializeField] private GameManager gameManager;
-    
-    private static readonly Color GroundColor = new (0.9f, 0.9f, 0.9f);
-    private static readonly Color RockColor = new (0.28f, 0.16f, 0.1f);
-    private static readonly Color WallColor = new (0.2f, 0.2f, 0.2f);
+
+    [SerializeField]private   Sprite GroundColor;
+    [SerializeField] private Sprite RockColor;
+    [SerializeField] private Sprite WallColor;
     
     private GameObject _bombermanPrefab;
     private GameObject _botPrefab;
@@ -70,7 +70,7 @@ public class GameRenderer : MonoBehaviour
         {
             for (var j = 0; j < _data.Height; j++)
             {
-                _terrain[i, j].color = _data.Terrain[i, j] switch
+                _terrain[i, j].sprite = _data.Terrain[i, j] switch
                 {
                     Tile.Ground => GroundColor,
                     Tile.Rock => RockColor,
