@@ -10,6 +10,6 @@ public class BombermanRenderer : MonoBehaviour
     void Update()
     {
         if (Bomberman.IsDead) Destroy(gameObject);
-        transform.position = Bomberman.Position;// + new Vector3(0,0.5f,0);
+        transform.position = Bomberman.Position + new Vector3(0,0,-2);// + new Vector3(0,0.5f,0);
     }
 }
